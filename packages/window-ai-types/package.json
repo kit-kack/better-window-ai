@@ -1,0 +1,34 @@
+{
+  "name": "@better-window-ai/types",
+  "version": "1.0.1",
+  "description": "TypeScript type definitions for window.ai API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "window.ai",
+    "ai",
+    "openai",
+    "typescript",
+    "types",
+    "browser-extension",
+    "function-calling"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kit-kack/better-window-ai.git",
+    "directory": "packages/window-ai-types"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

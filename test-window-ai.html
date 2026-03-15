@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>window.ai 测试页面</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        padding: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 10px;
+      }
+
+      .status {
+        padding: 10px 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        font-size: 14px;
+      }
+
+      .status.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .status.error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .section {
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+      }
+
+      .section h2 {
+        color: #495057;
+        margin-bottom: 15px;
+        font-size: 18px;
+      }
+
+      button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        transition: background 0.3s;
+      }
+
+      button:hover {
+        background: #5568d3;
+      }
+
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+
+      textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        margin-bottom: 10px;
+      }
+
+      .output {
+        background: white;
+        padding: 15px;
+        border-radius: 6px;
+        border: 1px solid #ddd;
+        min-height: 100px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .model-list {
+        list-style: none;
+      }
+
+      .model-item {
+        padding: 10px;
+        background: white;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        border: 1px solid #ddd;
+      }
+
+      .model-item strong {
+        color: #667eea;
+      }
+
+      .loading {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #667eea;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-left: 10px;
+        vertical-align: middle;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🤖 window.ai 测试页面</h1>
+      <p style="color: #666; margin-bottom: 20px">
+        测试浏览器扩展注入的 window.ai API
+      </p>
+
+      <div id="status" class="status"></div>
+
+      <!-- 检查可用性 -->
+      <div class="section">
+        <h2>1. 检查 AI 可用性</h2>
+        <button onclick="checkAvailable()">检查 window.ai.available()</button>
+        <div
+          id="available-output"
+          class="output"
+          style="margin-top: 10px"
+        ></div>
+      </div>
+
+      <!-- 获取模型列表 -->
+      <div class="section">
+        <h2>2. 获取模型列表</h2>
+        <button onclick="getModels()">获取 window.ai.getModels()</button>
+        <div id="models-output" class="output" style="margin-top: 10px"></div>
+      </div>
+
+      <!-- 获取当前模型 -->
+      <div class="section">
+        <h2>3. 获取当前模型</h2>
+        <button onclick="getCurrentModel()">
+          获取 window.ai.getCurrentModel()
+        </button>
+        <div
+          id="current-model-output"
+          class="output"
+          style="margin-top: 10px"
+        ></div>
+      </div>
+
+      <!-- 生成文本 -->
+      <div class="section">
+        <h2>4. 生成文本</h2>
+        <textarea
+          id="prompt-input"
+          rows="3"
+          placeholder="输入你的问题，例如：介绍一下 JavaScript"
+        ></textarea>
+        <textarea
+          id="system-prompt-input"
+          rows="2"
+          placeholder="系统提示（可选），例如：你是一位专业的程序员"
+        ></textarea>
+        <button onclick="generateText()">生成文本</button>
+        <button onclick="generateText(true)">带系统提示生成</button>
+        <div id="generate-output" class="output" style="margin-top: 10px"></div>
+      </div>
+
+      <!-- 快速测试 -->
+      <div class="section">
+        <h2>5. 快速测试</h2>
+        <button onclick="quickTest()">运行所有测试</button>
+      </div>
+    </div>
+
+    <script>
+      // 检查 window.ai 是否存在
+      window.addEventListener("DOMContentLoaded", () => {
+        const statusEl = document.getElementById("status");
+        if (typeof window.ai !== "undefined") {
+          statusEl.className = "status success";
+          statusEl.textContent = "✅ window.ai 已成功注入！可以开始测试。";
+        } else {
+          statusEl.className = "status error";
+          statusEl.textContent =
+            "❌ window.ai 未找到。请确保浏览器扩展已安装并启用。";
+        }
+      });
+
+      // 检查可用性
+      async function checkAvailable() {
+        const output = document.getElementById("available-output");
+        output.textContent = "检查中...";
+
+        try {
+          const available = await window.ai.available();
+          output.textContent = `结果: ${available ? "✅ AI 可用" : "❌ AI 不可用（请先配置模型）"}`;
+        } catch (error) {
+          output.textContent = `错误: ${error.message}`;
+        }
+      }
+
+      // 获取模型列表
+      async function getModels() {
+        const output = document.getElementById("models-output");
+        output.textContent = "获取中...";
+
+        try {
+          const models = await window.ai.getModels();
+          if (models.length === 0) {
+            output.textContent = "暂无可用模型";
+          } else {
+            output.innerHTML =
+              '<ul class="model-list">' +
+              models
+                .map(
+                  (m) => `
+              <li class="model-item">
+                <strong>${m.name}</strong><br>
+                模型: ${m.model}<br>
+                ID: ${m.id}<br>
+              </li>
+            `,
+                )
+                .join("") +
+              "</ul>";
+          }
+        } catch (error) {
+          output.textContent = `错误: ${error.message}`;
+        }
+      }
+
+      // 获取当前模型
+      async function getCurrentModel() {
+        const output = document.getElementById("current-model-output");
+        output.textContent = "获取中...";
+
+        try {
+          const model = await window.ai.getCurrentModel();
+          if (model) {
+            output.textContent = `当前模型:\n名称: ${model.name}\n模型: ${model.model}\nID: ${model.id}`;
+          } else {
+            output.textContent = "未配置当前模型";
+          }
+        } catch (error) {
+          output.textContent = `错误: ${error.message}`;
+        }
+      }
+
+      // 生成文本
+      async function generateText(useSystemPrompt = false) {
+        const output = document.getElementById("generate-output");
+        const prompt = document.getElementById("prompt-input").value.trim();
+        const systemPrompt = document
+          .getElementById("system-prompt-input")
+          .value.trim();
+
+        if (!prompt) {
+          output.textContent = "请输入提示词";
+          return;
+        }
+
+        output.innerHTML = '生成中... <span class="loading"></span>';
+
+        try {
+          const response = await window.ai.generateText({
+            messages: [
+              {
+                role: "system",
+                content:prompt,
+              },
+              {
+                role: "user",
+                content: systemPrompt,
+              },
+            ],
+          });
+          console.log(response.choices[0].message.content);
+          output.textContent = response.choices[0].message.content;
+        } catch (error) {
+          output.textContent = `错误: ${error.message}`;
+        }
+      }
+
+      // 快速测试所有功能
+      async function quickTest() {
+        console.log("=== 开始快速测试 ===");
+
+        // 测试 1: 检查可用性
+        console.log("1. 检查可用性...");
+        const available = await window.ai.available();
+        console.log("   结果:", available);
+
+        // 测试 2: 获取模型列表
+        console.log("2. 获取模型列表...");
+        const models = await window.ai.getModels();
+        console.log("   结果:", models);
+
+        // 测试 3: 获取当前模型
+        console.log("3. 获取当前模型...");
+        const currentModel = await window.ai.getCurrentModel();
+        console.log("   结果:", currentModel);
+
+        // 测试 4: 生成文本
+        if (available) {
+          console.log("4. 生成文本...");
+          try {
+            const text =
+              await window.ai.generateText("用一句话介绍 JavaScript");
+            console.log("   结果:", text);
+          } catch (error) {
+            console.error("   错误:", error.message);
+          }
+        }
+
+        console.log("=== 测试完成 ===");
+        alert("测试完成！请查看控制台输出。");
+      }
+    </script>
+  </body>
+</html>
