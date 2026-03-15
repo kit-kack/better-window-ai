@@ -7,7 +7,7 @@ export default defineConfig({
   modules: ["@wxt-dev/module-react", "@wxt-dev/auto-icons"],
   srcDir: "src",
   manifest: {
-    permissions: ["storage", "tabs", "activeTab", "browsingData", "scripting"],
+    permissions: ["storage", "tabs", "activeTab"],
     host_permissions: ["<all_urls>"],
     action: {},
   },
