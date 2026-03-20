@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Chrome extension
+        run: pnpm zip
+
+      - name: Build Firefox extension
+        run: pnpm zip:firefox
+
+      - name: Find zip files
+        id: find-zips
+        run: |
+          CHROME_ZIP=$(find .output -name "*chrome*.zip" | head -1)
+          FIREFOX_ZIP=$(find .output -name "*firefox*.zip" | head -1)
+          echo "chrome_zip=$CHROME_ZIP" >> $GITHUB_OUTPUT
+          echo "firefox_zip=$FIREFOX_ZIP" >> $GITHUB_OUTPUT
+          echo "Chrome: $CHROME_ZIP"
+          echo "Firefox: $FIREFOX_ZIP"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            ${{ steps.find-zips.outputs.chrome_zip }}
+            ${{ steps.find-zips.outputs.firefox_zip }}
