@@ -2,7 +2,7 @@
   "name": "better-window-ai",
   "description": "Better Window.AI is a browser extension that allows you to interact with the OpenAI API using the Anthropic AI model.",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "wxt",
@@ -12,7 +12,12 @@
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
     "compile": "tsc --noEmit",
-    "postinstall": "wxt prepare"
+    "postinstall": "wxt prepare",
+    "release": "standard-version",
+    "release:patch": "standard-version --release-as patch",
+    "release:minor": "standard-version --release-as minor",
+    "release:major": "standard-version --release-as major",
+    "release:push": "git push --follow-tags origin main"
   },
   "dependencies": {
     "@ant-design/cssinjs": "^2.1.2",
@@ -33,6 +38,7 @@
     "@types/react-dom": "^19.2.3",
     "@wxt-dev/auto-icons": "^1.1.1",
     "@wxt-dev/module-react": "^1.1.5",
+    "standard-version": "^9.5.0",
     "typescript": "^5.9.3",
     "wxt": "^0.20.18"
   }
